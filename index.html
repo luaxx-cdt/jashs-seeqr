@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#9575cd">
+    <title>JASHS See-QR</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen" class="login-wrapper">
+        <div id="loginCard" class="login-card">
+            <div class="login-logo">
+                <div class="logo-icon">🏥</div>
+                <h1>JASHS See-QR</h1>
+                <p>QR-Based Emergency Health Record System</p>
+            </div>
+
+            <div id="loginFormArea">
+                <label>Username</label>
+                <input type="text" id="username" placeholder="Enter username">
+
+                <label>Password</label>
+                <input type="password" id="password" placeholder="Enter password">
+
+                <button class="login-btn" onclick="login()">Login</button>
+                <p class="forgot-link" onclick="showOTPRequest()">Forgot Password / Verify</p>
+            </div>
+
+            <div id="otpArea" style="display:none;">
+                <p class="otp-desc">Enter 6-digit verification code sent to your contact</p>
+                <input type="text" id="otpInput" maxlength="6" placeholder="000000">
+                <button class="login-btn" onclick="verifyOTP()">Verify Code</button>
+                <p class="back-link" onclick="backToLogin()">← Back to Login</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboardScreen" class="dashboard-wrapper" style="display:none;">
+        <nav class="top-navbar">
+            <div class="nav-left">
+                <span class="brand-logo">🏥 JASHS See-QR</span>
+            </div>
+            <div class="nav-center">
+                <input type="text" class="global-search" id="globalSearch" 
+                       placeholder="🔍 Search by name, section, blood type, contact..." oninput="applyAllFilters()">
+            </div>
+            <div class="nav-right">
+                <div class="account-icon" onclick="toggleAccountMenu()">
+                    <img id="navProfilePic" src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png" alt="Account">
+                </div>
+                <div class="account-menu" id="accountMenu">
+                    <p onclick="openProfile()">👤 My Profile</p>
+                    <p onclick="showDatabaseQR()">📊 Database Access QR</p>
+                    <p onclick="showEntryQR()">➕ Add Data QR</p>
+                    <p onclick="exportData()">📤 Export Data</p>
+                    <p onclick="showImport()">📥 Import Data</p>
+                    <p onclick="logout()">🚪 Logout</p>
+                </div>
+            </div>
+        </nav>
+
+        <div class="main-content">
+            <!-- LEFT PANEL: Filters -->
+            <div class="left-panel">
+                <div class="filter-card">
+                    <h3>Filters</h3>
+                    <label>Grade Level</label>
+                    <select id="gradeLevel" onchange="updateSectionOptions(); applyAllFilters();">
+                        <option value="All">All</option>
+                        <option value="11">Grade 11</option>
+                        <option value="12" selected>Grade 12</option>
+                    </select>
+
+                    <label>Strand / Track</label>
+                    <select id="strandFilter" onchange="updateSectionOptions(); applyAllFilters();">
+                        <option value="All">All Strands</option>
+                        <option value="STEM">STEM</option>
+                        <option value="ASSH">ASSH</option>
+                        <option value="BE">BE</option>
+                        <option value="ICT">ICT</option>
+                        <option value="HOSPITALITY">Hospitality & Tourism</option>
+                        <option value="INDUSTRIAL">Industrial Technologies</option>
+                        <option value="CONSTRUCTION">Construction & Building</option>
+                    </select>
+
+                    <label>Section</label>
+                    <select id="sectionFilter" onchange="applyAllFilters();">
+                        <option value="All">All Sections</option>
+                    </select>
+
+                    <h4>Student Names</h4>
+                    <div id="studentList" class="student-list-box">
+                        <p class="empty-msg">No students found</p>
+                    </div>
+                </div>
+                <button class="add-btn" onclick="openAddForm()">➕ Add New Student</button>
+            </div>
+
+            <!-- RIGHT PANEL: Details -->
+            <div class="right-panel">
+                <div class="info-card">
+                    <h3>Student Medical Information</h3>
+                    <p class="select-hint" id="selectHint">← Select a student from the list to view details</p>
+
+                    <div id="studentDetails" style="display:none;">
+                        <table class="info-table">
+                            <tr><th colspan="2">👤 Personal Information</th></tr>
+                            <tr><td>Full Name</td><td id="d-name"></td></tr>
+                            <tr><td>Grade & Strand</td><td id="d-strand"></td></tr>
+                            <tr><td>Section / Room</td><td id="d-section"></td></tr>
+                            <tr><td>Adviser</td><td id="d-adviser"></td></tr>
+                            <tr><td>Blood Type</td><td id="d-blood" class="blood-type"></td></tr>
+                            
+                            <tr><th colspan="2">💊 Medical Information</th></tr>
+                            <tr><td>Allergies</td><td id="d-allergies"></td></tr>
+                            <tr><td>Medical Conditions</td><td id="d-conditions"></td></tr>
+                            <tr><td>Maintenance Medicines</td><td id="d-medicines"></td></tr>
+                            <tr><td>Special Needs / Instructions</td><td id="d-special"></td></tr>
+                            <tr><td>Doctor / Clinic Name</td><td id="d-doctor"></td></tr>
+                            
+                            <tr><th colspan="2">📞 Emergency Contact</th></tr>
+                            <tr><td>Contact Person</td><td id="d-ec-person"></td></tr>
+                            <tr><td>Relationship</td><td id="d-ec-relation"></td></tr>
+                            <tr><td>Contact Number</td><td id="d-ec-num"></td></tr>
+                            <tr><td>Alternative Number</td><td id="d-ec-alt"></td></tr>
+                        </table>
+
+                        <div class="qr-area">
+                            <h4>📷 Student QR Code</h4>
+                            <div id="qrcodeDisplay"></div>
+                            <button class="download-btn" onclick="downloadQR()">⬇ Download QR</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROFILE MODAL -->
+    <div id="profileModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('profileModal')">&times;</span>
+            <h2>👤 My Account Profile</h2>
+            <div class="profile-upload">
+                <img id="profilePreview" src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png" alt="Profile">
+                <input type="file" id="profilePhoto" accept="image/*" onchange="previewPhoto()">
+                <label for="profilePhoto" class="upload-label">Change Photo</label>
+            </div>
+            <label>Username</label>
+            <input type="text" id="profileUsername">
+            <label>New Password (leave blank to keep current)</label>
+            <input type="password" id="profileNewPass">
+            <label>Contact Number (for OTP recovery)</label>
+            <input type="text" id="profileContact" placeholder="09XX-XXX-XXXX">
+            <button onclick="saveProfile()">Save Profile</button>
+        </div>
+    </div>
+
+    <!-- DATABASE QR MODAL -->
+    <div id="databaseQRModal" class="modal" style="display:none;">
+        <div class="modal-content qr-modal">
+            <span class="close-btn" onclick="closeModal('databaseQRModal')">&times;</span>
+            <h2>📊 Full Database Access QR</h2>
+            <p class="qr-desc">Scan this QR to open the complete system — view, search, and manage all records. <strong>Login required.</strong></p>
+            <div id="databaseQRDisplay" class="qr-large"></div>
+            <p class="qr-note">Authorized personnel only • JASHS See-QR</p>
+        </div>
+    </div>
+
+    <!-- ENTRY QR MODAL -->
+    <div id="entryQRModal" class="modal" style="display:none;">
+        <div class="modal-content qr-modal">
+            <span class="close-btn" onclick="closeModal('entryQRModal')">&times;</span>
+            <h2>➕ Direct Data Entry QR</h2>
+            <p class="qr-desc">Scan this QR to add new student records directly. Data syncs instantly when devices share the same database.</p>
+            <div id="entryQRDisplay" class="qr-large"></div>
+            <p class="qr-note">Open on any device • Records appear immediately</p>
+        </div>
+    </div>
+
+    <!-- IMPORT MODAL -->
+    <div id="importModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('importModal')">&times;</span>
+            <h2>📥 Import Data</h2>
+            <p class="qr-desc">Paste exported data below. This will add to your existing records.</p>
+            <textarea id="importDataArea" rows="8" placeholder="Paste exported data here..."></textarea>
+            <label style="margin-top:10px;"><input type="checkbox" id="overwriteMode"> Replace all existing data</label>
+            <button onclick="doImport()">Import Now</button>
+        </div>
+    </div>
+
+    <!-- ADD STUDENT MODAL -->
+    <div id="addModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('addModal')">&times;</span>
+            <h2>Add New Student Record</h2>
+            
+            <label>Full Name</label>
+            <input type="text" id="new-name" required>
+
+            <label>Grade Level</label>
+            <select id="new-grade" onchange="populateNewSections()" required>
+                <option value="">Select Grade</option>
+                <option value="11">Grade 11</option>
+                <option value="12">Grade 12</option>
+            </select>
+
+            <label>Strand / Track</label>
+            <select id="new-strand" onchange="populateNewSections()" required>
+                <option value="">Select Strand</option>
+                <option value="STEM">STEM</option>
+                <option value="ASSH">ASSH</option>
+                <option value="BE">BE</option>
+                <option value="ICT">ICT</option>
+                <option value="HOSPITALITY">Hospitality & Tourism</option>
+                <option value="INDUSTRIAL">Industrial Technologies</option>
+                <option value="CONSTRUCTION">Construction & Building</option>
+            </select>
+
+            <label>Section</label>
+            <select id="new-section" required>
+                <option value="">Select Section First</option>
+            </select>
+
+            <label>Blood Type</label>
+            <select id="new-blood">
+                <option value="Unknown">Unknown / Not Recorded</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+            </select>
+
+            <label>Allergies</label>
+            <input type="text" id="new-allergies" placeholder="e.g. Penicillin, Peanuts, None">
+
+            <label>Medical Conditions</label>
+            <input type="text" id="new-conditions" placeholder="e.g. Asthma, Diabetes, None">
+
+            <label>Maintenance Medicines</label>
+            <input type="text" id="new-medicines" placeholder="e.g. Inhaler, Insulin">
+
+            <label>Special Needs / Important Instructions</label>
+            <input type="text" id="new-special" placeholder="Any special care or restrictions">
+
+            <label>Attending Doctor / Clinic</label>
+            <input type="text" id="new-doctor" placeholder="Name of doctor or clinic">
+
+            <label>Emergency Contact Person</label>
+            <input type="text" id="new-ec-person" required>
+
+            <label>Relationship to Student</label>
+            <input type="text" id="new-ec-relation" placeholder="e.g. Mother, Father, Guardian" required>
+
+            <label>Primary Contact Number</label>
+            <input type="text" id="new-ec-num" required>
+
+            <label>Alternative Contact Number</label>
+            <input type="text" id="new-ec-alt" placeholder="Optional">
+
+            <button onclick="saveNewStudent()">Save Record</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

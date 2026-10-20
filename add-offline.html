@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Student — JASHS See-QR</title>
+    <style>
+        *{box-sizing:border-box;font-family:Segoe UI,sans-serif;margin:0;padding:0;}
+        body{background:#f3e5f5;padding:20px;max-width:500px;margin:0 auto;}
+        h1{color:#7e57c2;text-align:center;margin-bottom:25px;}
+        .card{background:white;padding:25px;border-radius:16px;box-shadow:0 4px 15px rgba(126,87,194,0.1);}
+        label{display:block;margin-top:15px;margin-bottom:5px;font-weight:600;color:#555;font-size:14px;}
+        input,select,textarea{width:100%;padding:10px;border:2px solid #e1bee7;border-radius:8px;font-size:14px;}
+        button{width:100%;padding:14px;background:linear-gradient(90deg,#9575cd,#ce93d8);color:white;border:none;border-radius:10px;font-size:16px;font-weight:600;margin-top:20px;cursor:pointer;}
+        button.secondary{background:#e8eaf6;color:#7e57c2;margin-top:10px;}
+        .result{margin-top:20px;padding:15px;background:#faf5fc;border-radius:10px;display:none;word-break:break-all;font-size:12px;}
+        .instructions{background:#e8f5e9;padding:15px;border-radius:10px;margin-bottom:20px;font-size:13px;color:#2e7d32;line-height:1.5;}
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>➕ Add Student Record</h1>
+        
+        <div class="instructions">
+            <strong>📱 Offline Use:</strong> Fill in the form → tap "Copy Record" → the data will be copied to your phone. Later, paste it into the main system's Import box on your computer. No internet needed! ✅
+        </div>
+
+        <label>Full Name *</label>
+        <input type="text" id="name" required>
+
+        <label>Grade Level *</label>
+        <select id="grade">
+            <option value="11">Grade 11</option>
+            <option value="12" selected>Grade 12</option>
+        </select>
+
+        <label>Strand / Track *</label>
+        <select id="strand">
+            <option value="STEM">STEM</option>
+            <option value="ASSH">ASSH</option>
+            <option value="BE">BE</option>
+            <option value="ICT">ICT</option>
+            <option value="HOSPITALITY">Hospitality & Tourism</option>
+            <option value="INDUSTRIAL">Industrial Technologies</option>
+            <option value="CONSTRUCTION">Construction & Building</option>
+        </select>
+
+        <label>Section *</label>
+        <input type="text" id="section" placeholder="e.g. Knowledge, Faith...">
+
+        <label>Blood Type</label>
+        <select id="blood">
+            <option value="Unknown">Unknown / Not Recorded</option>
+            <option value="A+">A+</option><option value="A-">A-</option>
+            <option value="B+">B+</option><option value="B-">B-</option>
+            <option value="AB+">AB+</option><option value="AB-">AB-</option>
+            <option value="O+">O+</option><option value="O-">O-</option>
+        </select>
+
+        <label>Allergies</label>
+        <input type="text" id="allergies" placeholder="None">
+
+        <label>Medical Conditions</label>
+        <input type="text" id="conditions" placeholder="None">
+
+        <label>Emergency Contact Person *</label>
+        <input type="text" id="contactPerson" required>
+
+        <label>Contact Number *</label>
+        <input type="text" id="contactNum" required>
+
+        <button onclick="generateRecord()">📋 Generate Record</button>
+        
+        <div class="result" id="resultBox">
+            <strong>✅ Record Copied!</strong><br>
+            <textarea id="outputText" rows="6" readonly style="margin-top:10px;"></textarea>
+            <button class="secondary" onclick="copyText()">📋 Copy to Clipboard Again</button>
+            <p style="margin-top:10px;font-size:12px;color:#666;">Paste this into the main system's Import box on your computer later</p>
+        </div>
+    </div>
+
+    <script>
+        function generateRecord(){
+            const record = {
+                id: Date.now(),
+                fullName: document.getElementById('name').value.trim(),
+                grade: document.getElementById('grade').value,
+                strand: document.getElementById('strand').value,
+                section: document.getElementById('section').value.trim(),
+                bloodType: document.getElementById('blood').value,
+                allergies: document.getElementById('allergies').value.trim() || "None recorded",
+                conditions: document.getElementById('conditions').value.trim() || "None recorded",
+                emergencyPerson: document.getElementById('contactPerson').value.trim(),
+                emergencyContact: document.getElementById('contactNum').value.trim()
+            };
+
+            if(!record.fullName || !record.emergencyPerson || !record.emergencyContact){
+                alert("Please fill in all required fields (*)");
+                return;
+            }
+
+            const output = JSON.stringify([record]);
+            document.getElementById('outputText').value = output;
+            document.getElementById('resultBox').style.display = "block";
+            copyText();
+        }
+
+        function copyText(){
+            const text = document.getElementById('outputText').value;
+            navigator.clipboard.writeText(text).then(()=>{
+                alert("✅ Copied! Paste this into your main system later.");
+            }).catch(()=>{
+                document.getElementById('outputText').select();
+                alert("Please copy the text manually");
+            });
+        }
+    </script>
+</body>
+</html>
